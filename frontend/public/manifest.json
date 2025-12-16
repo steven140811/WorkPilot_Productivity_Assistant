@@ -1,6 +1,6 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "周报OKR助手",
+  "name": "周报 & OKR 生成助手",
   "icons": [
     {
       "src": "favicon.ico",

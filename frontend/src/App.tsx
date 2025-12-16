@@ -4,6 +4,9 @@ import OKRGenerator from './components/OKRGenerator';
 import apiService, { HealthResponse } from './services/api';
 import './App.css';
 
+// Get version from package.json
+const APP_VERSION = process.env.REACT_APP_VERSION || '0.4.0';
+
 type TabType = 'weekly-report' | 'okr';
 
 function App() {
@@ -65,7 +68,7 @@ function App() {
 
       <footer className="App-footer">
         <p>
-          Weekly Report & OKR Assistant v0.4 | 
+          Weekly Report & OKR Assistant v{APP_VERSION} | 
           最大输入长度: {health?.max_input_chars || 20000} 字符
         </p>
       </footer>
