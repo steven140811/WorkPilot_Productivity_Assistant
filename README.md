@@ -2,550 +2,216 @@
 
 [中文文档](README_CN.md) | English
 
-An intelligent assistant to help you generate weekly reports and manage OKRs (Objectives and Key Results) efficiently.
-
-> **Note**: This project is currently in the planning/documentation phase. The deployment instructions below serve as guidelines for when the implementation is complete.
+An intelligent assistant to help you generate weekly reports and manage OKRs (Objectives and Key Results) efficiently. Based on LLM, supports automatically generating standardized weekly report emails from daily reports, and generating quarterly OKRs based on historical materials.
 
 ## 📋 Features
 
-- **Automated Weekly Report Generation**: Automatically generate comprehensive weekly reports based on your work logs
-- **OKR Management**: Track and manage your objectives and key results
-- **Smart Templates**: Customizable templates for different report formats
-- **Progress Tracking**: Visual progress tracking for your goals and tasks
-- **Export Options**: Export reports in multiple formats (PDF, Markdown, etc.)
+### 📅 Daily Report Entry
+- **Calendar View**: Large calendar interface, click on a date to directly enter daily report
+- **Weekend Indicator**: Saturdays and Sundays displayed in red text
+- **Data Persistence**: Daily reports automatically saved to local SQLite database
+- **Quick Template**: Support inserting daily report template for quick filling
+- **Status Indicator**: Recorded dates marked in green for clear visibility
+- **Statistics**: Display monthly and total entry counts
+- **TODO Tips**: Left-side floating note panel, can add/check/delete TODO items
 
-## 🚀 One-Click Deployment
+### 📋 Weekly Report Generation
+- **Automatic Generation**: Generate standardized weekly report email format from text daily reports
+- **Import from Daily Reports**: One-click select recorded daily reports, support custom date ranges
+- **Flexible Date Range**: Generate reports using actual imported date ranges, not fixed current week range
+- **Smart Date Recognition**: Automatically recognize date formats (`20251212 8h` or `2025-12-12 8h`)
+- **Smart Categorization**: Auto-categorize into projects, capability building, research, and other administrative work
+- **Deduplication & Merging**: Auto deduplicate and merge similar items
+- **Risk Analysis**: Extract risk points and provide response suggestions
+- **Save Report**: Generated reports can be saved to database
 
-> **Note**: The following deployment methods will be available once the project implementation is complete. These instructions serve as a comprehensive guide for future deployment.
+### � Weekly Report Query
+- **History Query**: Query historical weekly reports by date range
+- **Edit Function**: Can edit saved weekly reports
+- **Delete Function**: Can delete unwanted weekly report records
 
-### Prerequisites
+### 🎯 OKR Management
+- **Smart Generation**: Generate next quarter OKR based on historical materials
+- **Clear Date Node**: Each KR contains clear date node (`YYYY-MM-DD before`)
+- **Quantitative Metrics**: Each KR contains quantitative expression (threshold/ratio/quantity etc.)
+- **Milestone Planning**: Key KRs contain phase milestones (M1/M2/M3)
+- **Goal Management**: Generate 2-3 reasonable objectives
+- **Save OKR**: Generated OKRs can be saved to database
 
-Before deployment, ensure you have:
-- Node.js 16+ or Python 3.8+ (depending on your implementation)
-- Git installed
-- A GitHub account (for deployment options)
-
-### Method 1: Deploy with Vercel (Recommended)
-
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/steven140811/Weekly-Report-and-OKR-Assistant)
-
-1. Click the "Deploy with Vercel" button above
-2. Sign in with your GitHub account
-3. Follow the prompts to complete the deployment
-4. Your application will be live in minutes!
-
-### Method 2: Deploy with Netlify
-
-[![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/steven140811/Weekly-Report-and-OKR-Assistant)
-
-1. Click the "Deploy to Netlify" button above
-2. Connect your GitHub account
-3. Configure your site settings
-4. Click "Deploy site"
-
-### Method 3: Local Deployment
-
-#### Quick Start
-
-```bash
-# Clone the repository
-git clone https://github.com/steven140811/Weekly-Report-and-OKR-Assistant.git
-
-# Navigate to the project directory
-cd Weekly-Report-and-OKR-Assistant
-
-# Install dependencies
-npm install
-# or if using Python
-pip install -r requirements.txt
-
-# Start the development server
-npm run dev
-# or if using Python
-python app.py
-
-# The application will be available at http://localhost:3000
-```
-
-#### Production Build
-
-```bash
-# Build for production
-npm run build
-
-# Start production server
-npm start
-```
-
-### Method 4: Docker Deployment
-
-```bash
-# Build Docker image
-docker build -t weekly-report-okr .
-
-# Run container
-docker run -p 3000:3000 weekly-report-okr
-
-# Access at http://localhost:3000
-```
-
-### Method 5: Deploy with Railway
-
-[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/new/template?template=https://github.com/steven140811/Weekly-Report-and-OKR-Assistant)
-
-1. Click the "Deploy on Railway" button
-2. Sign in with your GitHub account
-3. Configure environment variables if needed
-4. Deploy with one click
-
-## 📖 Usage
-
-### Creating a Weekly Report
-
-1. Log in to the application
-2. Navigate to "Weekly Report" section
-3. Fill in your work achievements for the week
-4. Click "Generate Report"
-5. Review and export your report
-
-### Managing OKRs
-
-1. Go to the "OKR" section
-2. Click "Add New Objective"
-3. Define your objective and key results
-4. Track progress throughout the quarter
-5. Update status regularly
+### � Data Storage
+- Use SQLite lightweight database
+- Database file location: `backend/data/reports.db`
+- Four tables: daily_reports, weekly_reports, okr_reports, todo_items
 
 ## 🛠️ Technology Stack
 
-*Note: The specific technologies will be determined during implementation. Suggested options include:*
-
-- **Frontend**: React / Vue.js / Next.js
-- **Backend**: Node.js / Python
-- **Database**: MongoDB / PostgreSQL
-- **AI/ML**: OpenAI API / Custom NLP models
-- **Deployment**: Vercel / Netlify / Docker
-
-## 📝 Configuration
-
-Create a `.env` file in the root directory:
-
-```env
-# API Configuration
-API_KEY=your_api_key_here
-DATABASE_URL=your_database_url
-
-# Application Settings
-PORT=3000
-NODE_ENV=production
-```
-
-## 🤝 Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## 📧 Contact
-
-Project Link: [https://github.com/steven140811/Weekly-Report-and-OKR-Assistant](https://github.com/steven140811/Weekly-Report-and-OKR-Assistant)
-
-## 🙏 Acknowledgments
-
-- Thanks to all contributors
-- Inspired by best practices in productivity tools
-- Built with modern web technologies
-=======
-# 周报 & OKR 生成助手 (Weekly Report & OKR Assistant)
-
-基于 LLM 的智能周报和 OKR 生成工具，支持从日报自动生成规范的周报邮件正文，以及根据历史材料生成季度 OKR。
-
-## 功能特性
-
-### 📅 日报录入
-- **日历视图**：大日历界面，点击日期直接录入日报
-- **数据持久化**：日报自动保存到本地 SQLite 数据库
-- **快捷模板**：支持插入日报模板，快速填写
-- **状态标识**：已录入日期绿色标记，一目了然
-- **统计功能**：显示本月和总计录入数量
-
-### 📋 周报生成
-- 从文本日报（单天或整周拼接）生成固定结构的周报邮件正文
-- **从日报导入**：一键选择已录入的日报，支持自定义日期范围
-- 自动识别日期格式（`20251212 8h` 或 `2025-12-12 8h`）
-- 智能归类：手上项目、服务化能力建设、预研、其他事务性工作
-- 自动去重合并相似条目
-- 风险点提取与应对建议
-- **保存周报**：生成的周报可保存到数据库
-
-### 🔍 周报查询
-- **历史查询**：按日期范围查询历史周报
-- **编辑功能**：可编辑已保存的周报
-- **删除功能**：可删除不需要的周报记录
-
-### 🎯 OKR 生成
-- 结合历史材料生成下一季度 OKR
-- 每个 KR 包含明确日期节点（`YYYY-MM-DD前`）
-- 每个 KR 包含量化表达（阈值/比例/数量等）
-- 关键 KR 包含阶段里程碑（M1/M2/M3）
-- 生成 2-3 个目标
-- **保存 OKR**：生成的 OKR 可保存到数据库
-
-### 💾 数据存储
-- 使用 SQLite 轻量级数据库
-- 数据文件位置：`backend/data/reports.db`
-- 三张表：日报(daily_reports)、周报(weekly_reports)、OKR(okr_reports)
-
-## 技术栈
-
-- **前端**: React + TypeScript
-- **后端**: Flask + Python
+- **Frontend**: React + TypeScript
+- **Backend**: Flask + Python
 - **LLM**: OpenAI-like chat completions API
+- **Deployment**: Docker / Local / Batch Scripts
 
-## 快速开始
+## 🚀 Quick Start
 
-### 方式一：一键启动脚本（推荐 Windows 用户）
+### Method 1: One-Click Launch Script (Recommended for Windows Users) ⭐
 
-**Windows 用户最简单的方式：**
+**Simplest way for Windows users:**
 
-1. 克隆项目并安装依赖
+1. Clone project and install dependencies
 ```bash
 git clone https://github.com/steven140811/Weekly-Report-and-OKR-Assistant.git
 cd Weekly-Report-and-OKR-Assistant
 
-# 安装后端依赖
+# Install backend dependencies
 cd backend
 pip install -r requirements.txt
 
-# 安装前端依赖
+# Install frontend dependencies
 cd ../frontend
 npm install
 cd ..
 ```
 
-2. 配置环境变量
+2. Configure environment variables
 ```bash
-# 编辑 backend\.env 文件，填入 LLM API 配置
-# 如果不配置，将使用模拟模式
+# Edit backend\.env file, fill in LLM API configuration
+# If not configured, will use mock mode
 ```
 
-3. 一键启动所有服务
+3. One-click launch all services
 ```bash
-# 双击运行或在命令行执行
+# Double-click to run or execute in command line
 start_services.bat
 
-# 停止服务
+# Stop services
 stop_services.bat
 ```
 
-**特性：**
-- ✅ 自动检测并释放端口冲突
-- ✅ 后端使用 `pythonw.exe` 完全后台运行（无窗口）
-- ✅ 前端后台运行
-- ✅ 自动打开浏览器
-- ✅ 日志输出到文件：`backend\backend.log` 和 `frontend\frontend.log`
-- ✅ 启动脚本退出后服务继续运行
+**Features:**
+- ✅ Auto-detect and release port conflicts
+- ✅ Backend runs completely in background with `pythonw.exe` (no window)
+- ✅ Frontend runs in background
+- ✅ Auto-open browser
+- ✅ Log output to files: `backend\backend.log` and `frontend\frontend.log`
+- ✅ Services continue running after script exits
 
-4. 访问应用
-- 前端: http://localhost:5002
-- 后端 API: http://localhost:5001
+4. Access application
+- Frontend: http://localhost:5002
+- Backend API: http://localhost:5001
 
-### 方式二：Docker Compose
+### Method 2: Docker Compose
 
-1. 克隆项目
 ```bash
-git clone https://github.com/steven140811/Weekly-Report-and-OKR-Assistant.git
-cd Weekly-Report-and-OKR-Assistant
-```
-
-2. 配置环境变量（可选，不配置将使用模拟模式）
-```bash
-cp .env.example .env
-# 编辑 .env 文件，填入 LLM API 配置
-```
-
-3. 启动服务
-```bash
+# Build Docker images
 docker-compose up -d
+
+# Access application
+# Frontend: http://localhost:3000
+# Backend API: http://localhost:5000
 ```
 
-4. 访问应用
-- 前端: http://localhost:3000
-- 后端 API: http://localhost:5000
+### Method 3: Manual Deployment
 
-### 方式三：手动部署
-
-#### 后端
+#### Backend
 
 ```bash
 cd backend
-python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
 pip install -r requirements.txt
-
-# 配置环境变量
-export LLM_API_URL=https://your-llm-api-url/v1
-export LLM_API_KEY=your-api-key
-
-# 启动开发服务器
 python app.py
-
-# 或使用 gunicorn
-gunicorn --bind 0.0.0.0:5000 app:app
 ```
 
-#### 前端
+#### Frontend
 
 ```bash
 cd frontend
 npm install
-
-# 开发模式
 npm start
-
-# 生产构建
-npm run build
 ```
 
-## API 文档
-
-### 健康检查
-```
-GET /api/health
-```
-
-### 获取周范围
-```
-GET /api/week-range
-```
-
-### 生成周报
-```
-POST /api/generate/weekly-report
-Content-Type: application/json
-
-{
-  "content": "日报内容...",
-  "use_mock": false
-}
-```
-
-### 生成 OKR
-```
-POST /api/generate/okr
-Content-Type: application/json
-
-{
-  "content": "历史材料...",
-  "next_quarter": "2026第一季度",
-  "use_mock": false
-}
-```
-
-### 日报 CRUD API
+## 📁 Project Structure
 
 ```
-# 保存日报
-POST /api/daily-reports
-{
-  "entry_date": "2025-12-17",
-  "content": "日报内容..."
-}
-
-# 获取日报
-GET /api/daily-reports/{entry_date}
-
-# 获取日期范围内的日报
-GET /api/daily-reports/range?start_date=2025-12-16&end_date=2025-12-20
-
-# 获取所有已录入日期
-GET /api/daily-reports/dates
-
-# 删除日报
-DELETE /api/daily-reports/{entry_date}
-```
-
-### 周报 CRUD API
-
-```
-# 保存周报
-POST /api/weekly-reports
-{
-  "start_date": "2025-12-16",
-  "end_date": "2025-12-20",
-  "content": "周报内容..."
-}
-
-# 查询周报
-GET /api/weekly-reports/query?start_date=2025-12-16&end_date=2025-12-20
-
-# 获取最新周报
-GET /api/weekly-reports/latest
-
-# 获取所有周报
-GET /api/weekly-reports
-
-# 删除周报
-DELETE /api/weekly-reports?start_date=2025-12-16&end_date=2025-12-20
-```
-
-### OKR CRUD API
-
-```
-# 保存 OKR
-POST /api/okr-reports
-{
-  "creation_date": "2025-12-17",
-  "content": "OKR内容..."
-}
-
-# 获取 OKR
-GET /api/okr-reports/{creation_date}
-
-# 获取最新 OKR
-GET /api/okr-reports/latest
-
-# 获取所有 OKR
-GET /api/okr-reports
-
-# 删除 OKR
-DELETE /api/okr-reports/{creation_date}
-```
-
-## 配置说明
-
-### 环境变量
-
-| 环境变量 | 说明 | 默认值 |
-|---------|------|--------|
-| LLM_API_URL | LLM API 地址 | - |
-| LLM_API_KEY | LLM API 密钥 | - |
-| LLM_MODEL | LLM 模型名称 | default/deepseek-v3-2 |
-| LLM_TIMEOUT | API 超时时间(秒) | 120 |
-| LLM_RETRY | 重试次数 | 3 |
-| MAX_INPUT_CHARS | 最大输入字符数 | 20000（冻结） |
-| PORT | 后端端口 | 5001（脚本启动）/ 5000（Docker） |
-
-### 端口配置
-
-- **脚本启动方式**：
-  - 后端：5001
-  - 前端：5002
-  
-- **Docker 启动方式**：
-  - 后端：5000
-  - 前端：3000
-
-### 配置文件位置
-
-- 后端配置：`backend\.env`
-- 前端配置：`frontend\.env`（可选）
-
-## 周报输出格式
-
-```
-周报（YYYY-MM-DD ~ YYYY-MM-DD）
-
-本周一句话总结：[进展 + 风险，不超过100字]
-
-1、手上项目、服务化能力建设、预研的主要进展
-
-手上项目
-- ...
-
-服务化能力建设
-- ...
-
-预研
-- ...
-
-2、是否有风险，哪些风险点？
-- 风险1 + 应对建议
-- ...
-
-3、其他的事务性工作
-- ...
-
-4、下周大概的计划
-- ...
-```
-
-**注意**：系统会自动清理 LLM 可能生成的多余序号，确保输出格式统一。
-
-## OKR 输出格式
-
-```
-2026第一季度OKR：
-
-目标 O1：...
-KR1：YYYY-MM-DD前...（量化表达）；
-KR2：YYYY-MM-DD前...；
-
-目标 O2：...
-KR1：M1阶段(日期前)...；M2阶段(日期前)...；M3阶段(日期前)...；
-```
-
-## 开发
-
-### 运行测试
-
-```bash
-cd backend
-python -m pytest tests/ -v
-```
-
-### 脚本说明
-
-- **`start_services.bat`**：Windows 一键启动脚本
-  - 自动检测端口占用
-  - 使用 `pythonw.exe` 后台启动后端（无窗口）
-  - 后台启动前端
-  - 自动打开浏览器
-  
-- **`stop_services.bat`**：Windows 一键停止脚本
-  - 停止所有相关服务
-  - 清理残留进程
-
-- **`start_backend.bat`**：单独启动后端
-- **`QUICK_START.md`**：详细使用指南
-- **`使用说明.txt`**：快速参考
-
-### 项目结构
-
-```
-.
-├── backend/
-│   ├── app.py          # Flask 应用主入口
-│   ├── config.py       # 配置管理
-│   ├── database.py     # SQLite 数据库模块
-│   ├── parser.py       # 日报解析模块
-│   ├── generator.py    # 周报/OKR 生成逻辑
-│   ├── llm_client.py   # LLM API 客户端
-│   ├── prompts.py      # Prompt 模板
-│   ├── data/           # 数据库存储目录
-│   │   └── reports.db  # SQLite 数据库文件
-│   └── tests/          # 测试文件
-├── frontend/
+Weekly-Report-and-OKR-Assistant/
+├── backend/                 # Flask backend application
+│   ├── app.py              # Main application entry
+│   ├── config.py           # Configuration management
+│   ├── generator.py        # Report generation logic
+│   ├── llm_client.py       # LLM client
+│   ├── parser.py           # Text parser
+│   ├── prompts.py          # AI prompt templates
+│   ├── database.py         # SQLite database module
+│   ├── requirements.txt    # Python dependencies
+│   ├── data/               # Data directory
+│   │   └── reports.db      # SQLite database file
+│   └── tests/              # Test files
+├── frontend/               # React frontend application
 │   ├── src/
 │   │   ├── components/
-│   │   │   ├── DailyReportEntry.tsx    # 日报录入组件
-│   │   │   ├── WeeklyReportGenerator.tsx # 周报生成组件
-│   │   │   ├── WeeklyReportQuery.tsx   # 周报查询组件
-│   │   │   └── OKRGenerator.tsx        # OKR生成组件
-│   │   ├── services/   # API 服务
-│   │   └── App.tsx     # 主应用
-│   └── public/
-├── docker-compose.yml
-├── start_services.bat  # Windows 一键启动
-├── stop_services.bat   # Windows 一键停止
-└── README.md
+│   │   │   ├── DailyReportEntry.tsx      # Daily report entry component
+│   │   │   ├── DailyReportEntry.css
+│   │   │   ├── WeeklyReportGenerator.tsx # Weekly report generator component
+│   │   │   ├── WeeklyReportGenerator.css
+│   │   │   ├── WeeklyReportQuery.tsx     # Weekly report query component
+│   │   │   ├── WeeklyReportQuery.css
+│   │   │   ├── OKRGenerator.tsx          # OKR generator component
+│   │   │   └── OKRGenerator.css
+│   │   ├── services/
+│   │   │   └── api.ts      # API service layer
+│   │   └── App.tsx         # Main application component
+│   └── package.json
+├── docker-compose.yml      # Docker compose file
+├── start_services.bat      # Windows one-click start script
+├── stop_services.bat       # Windows one-click stop script
+└── README.md               # Project documentation
 ```
+
+## 📡 API Endpoints
+
+### Weekly Report Generation
+- `POST /api/generate/weekly-report` - Generate weekly report
+
+### OKR Generation
+- `POST /api/generate/okr` - Generate OKR
+
+### Daily Report Management
+- `GET /api/daily-reports?start_date=YYYY-MM-DD&end_date=YYYY-MM-DD` - Query daily reports
+- `GET /api/daily-report/<date>` - Get daily report for specific date
+- `POST /api/daily-report` - Save daily report
+- `PUT /api/daily-report/<date>` - Update daily report
+- `DELETE /api/daily-report/<date>` - Delete daily report
+
+### Weekly Report Management
+- `GET /api/weekly-reports?start_date=YYYY-MM-DD&end_date=YYYY-MM-DD` - Query weekly reports
+- `GET /api/weekly-report/<id>` - Get specific weekly report
+- `POST /api/weekly-report` - Save weekly report
+- `PUT /api/weekly-report/<id>` - Update weekly report
+- `DELETE /api/weekly-report/<id>` - Delete weekly report
+
+### OKR Management
+- `GET /api/okr-reports?quarter=YYYY-QN` - Query OKRs
+- `GET /api/okr-report/<id>` - Get specific OKR
+- `POST /api/okr-report` - Save OKR
+- `PUT /api/okr-report/<id>` - Update OKR
+- `DELETE /api/okr-report/<id>` - Delete OKR
+
+### TODO Management
+- `GET /api/todo-items` - Get all TODO items
+- `POST /api/todo-items` - Create TODO item
+- `PUT /api/todo-items/<id>` - Update TODO item (content/completion status)
+- `DELETE /api/todo-items/<id>` - Delete TODO item
+
+## 🔧 Environment Variables Configuration
+
+In `backend/.env` file:
+
+```bash
+LLM_PROVIDER=deepseek          # LLM provider
+LLM_API_KEY=your_api_key       # API key
+LLM_MODEL_NAME=deepseek-chat   # Model name
+LLM_BASE_URL=https://api.deepseek.com/v1  # API address
+LLM_TIMEOUT=60                 # Timeout in seconds
+```
+
+## 📝 License
+
+MIT License
 
