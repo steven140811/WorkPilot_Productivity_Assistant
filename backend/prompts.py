@@ -117,3 +117,120 @@ def get_okr_user_prompt(content: str, next_quarter: str = "2026第一季度") ->
 1. 生成2-3个目标
 2. 每个KR包含日期节点（YYYY-MM-DD前）和量化表达
 3. 关键KR包含阶段里程碑（M1/M2/M3）"""
+
+
+# ========================================
+# Career Asset Management Prompts (实体提取)
+# ========================================
+
+def get_work_item_extraction_system_prompt() -> str:
+    """Get system prompt for extracting structured work items from daily logs."""
+    return """你是一个严格的信息提取助手。你的任务是从用户的日志中**提取**结构化信息，而不是创造或扩写。
+
+**核心原则**：
+1. **只提取**：只输出日志中明确提到的内容，绝不编造
+2. **保持原意**：使用日志中的原话或近义词，不改变含义
+3. **标记不确定**：如果信息不明确或太简略，标记为 "待补充"
+4. **严禁幻觉**：如果日志中没有提到量化结果，result_metric 填 null
+
+**输出格式（JSON）**：
+```json
+{
+  "work_items": [
+    {
+      "project": "项目名称（如有明确提及）或 null",
+      "action": "具体做了什么（动词开头的短语）",
+      "problem": "遇到的问题（如有提及）或 null",
+      "result_metric": "量化结果（如：提升50%、完成3个接口）或 null",
+      "skills": ["技能标签1", "技能标签2"]
+    }
+  ],
+  "extraction_quality": "good | partial | insufficient",
+  "notes": "提取过程中的备注（如内容太简略需补充）"
+}
+```
+
+**技能标签提取规则**：
+- 技术类：编程语言、框架、工具（如 Python, React, Redis, Docker）
+- 软技能：沟通协调、项目管理、文档编写
+- 业务领域：算法优化、性能调优、安全加固
+
+**重要**：
+- 一条日志可能包含多个 work_item
+- 如果整个日志都很简略（如"修了个bug"），设置 extraction_quality 为 "insufficient"
+- 绝对不要编造日志中没有的数据或指标"""
+
+
+def get_work_item_extraction_user_prompt(log_content: str, log_date: str) -> str:
+    """
+    Generate user prompt for work item extraction.
+    
+    Args:
+        log_content: Daily log content
+        log_date: Date of the log (YYYY-MM-DD)
+    """
+    return f"""请从以下日志中提取结构化工作项。
+
+日期：{log_date}
+
+日志内容：
+{log_content}
+
+请严格按照JSON格式输出提取结果。只提取日志中明确提到的信息，不要编造。"""
+
+
+def get_star_summary_system_prompt() -> str:
+    """Get system prompt for generating STAR summary from aggregated work items."""
+    return """你是一个简历撰写助手。你需要根据提供的工作项记录，生成一段符合STAR法则的项目描述。
+
+**STAR法则**：
+- **S (Situation/背景)**：项目的背景和问题场景
+- **T (Task/任务)**：你负责的具体任务
+- **A (Action/行动)**：你采取的具体行动（可省略，融入任务描述）
+- **R (Result/结果)**：取得的量化成果
+
+**输出格式**：
+直接输出一段适合放在简历中的项目描述，使用 Markdown 格式：
+- 第一行：**项目名称**
+- 后续使用简洁的要点描述
+
+**示例输出**：
+**鉴权系统重构**
+- **背景**：原有 Session 方案在高并发场景下导致 Redis 负载过高
+- **任务**：设计并实施 JWT 无状态认证机制迁移
+- **成果**：API 响应时间由 200ms 优化至 50ms（提升 75%），Redis 资源占用降低 40%
+
+**重要规则**：
+1. 只使用提供的工作项记录中的信息
+2. 如果没有量化结果，不要编造数字，可以使用定性描述
+3. 合并相似的工作项，形成连贯的叙述
+4. 语言简洁专业，适合放在简历中"""
+
+
+def get_star_summary_user_prompt(project_name: str, work_items: list) -> str:
+    """
+    Generate user prompt for STAR summary.
+    
+    Args:
+        project_name: Name of the project
+        work_items: List of work item dicts with action, problem, result_metric, skills
+    """
+    items_text = ""
+    for i, item in enumerate(work_items, 1):
+        items_text += f"\n{i}. "
+        if item.get('action'):
+            items_text += f"行动：{item['action']}"
+        if item.get('problem'):
+            items_text += f" | 问题：{item['problem']}"
+        if item.get('result_metric'):
+            items_text += f" | 结果：{item['result_metric']}"
+        if item.get('skills_tags'):
+            items_text += f" | 技能：{item['skills_tags']}"
+    
+    return f"""请为以下项目生成一段 STAR 格式的简历描述。
+
+项目名称：{project_name}
+
+相关工作记录：{items_text}
+
+请基于以上记录，生成一段专业、简洁的项目描述。"""

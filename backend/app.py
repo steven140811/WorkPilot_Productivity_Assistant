@@ -580,6 +580,429 @@ def delete_todo_item(item_id):
         return jsonify({'success': False, 'error': 'TODO项不存在或删除失败'}), 404
 
 
+# ========================================
+# Career Asset Management API (新增)
+# ========================================
+
+# --- Projects API ---
+
+@app.route('/api/projects', methods=['GET'])
+def get_all_projects():
+    """
+    Get all projects, optionally filtered by status.
+    
+    Query parameters:
+    - status: 'active' or 'archived' (optional)
+    """
+    status = request.args.get('status')
+    projects = db.get_all_projects(status=status)
+    return jsonify({'success': True, 'data': projects})
+
+
+@app.route('/api/projects/summary', methods=['GET'])
+def get_projects_summary():
+    """
+    Get projects summary with work item counts.
+    """
+    summary = db.get_projects_summary()
+    return jsonify({'success': True, 'data': summary})
+
+
+@app.route('/api/projects/<int:project_id>', methods=['GET'])
+def get_project(project_id):
+    """
+    Get a project by ID with all its work items.
+    """
+    project = db.get_project_with_work_items(project_id)
+    if project:
+        return jsonify({'success': True, 'data': project})
+    else:
+        return jsonify({'success': False, 'error': '项目不存在'}), 404
+
+
+@app.route('/api/projects', methods=['POST'])
+def create_project():
+    """
+    Create a new project.
+    
+    Request body:
+    {
+        "name": "Project Name",
+        "description": "Optional description"
+    }
+    """
+    data = request.get_json()
+    if not data or 'name' not in data:
+        return jsonify({'success': False, 'error': '缺少 name 字段'}), 400
+    
+    project = db.create_project(
+        name=data['name'],
+        description=data.get('description'),
+        status=data.get('status', 'active')
+    )
+    
+    if project:
+        return jsonify({'success': True, 'data': project})
+    else:
+        return jsonify({'success': False, 'error': '项目创建失败'}), 500
+
+
+@app.route('/api/projects/<int:project_id>', methods=['PUT'])
+def update_project(project_id):
+    """
+    Update a project.
+    
+    Request body:
+    {
+        "name": "New name",  // optional
+        "description": "New description",  // optional
+        "status": "archived",  // optional
+        "star_summary": "STAR summary text"  // optional
+    }
+    """
+    data = request.get_json()
+    if not data:
+        return jsonify({'success': False, 'error': '缺少请求体'}), 400
+    
+    project = db.update_project(project_id, **data)
+    
+    if project:
+        return jsonify({'success': True, 'data': project})
+    else:
+        return jsonify({'success': False, 'error': '更新失败或项目不存在'}), 404
+
+
+@app.route('/api/projects/<int:project_id>', methods=['DELETE'])
+def delete_project(project_id):
+    """
+    Delete a project and its work items.
+    """
+    success = db.delete_project(project_id)
+    
+    if success:
+        return jsonify({'success': True, 'message': '项目删除成功'})
+    else:
+        return jsonify({'success': False, 'error': '项目不存在或删除失败'}), 404
+
+
+@app.route('/api/projects/<int:project_id>/star', methods=['POST'])
+def generate_project_star(project_id):
+    """
+    Generate STAR summary for a project.
+    """
+    from generator import generate_star_summary
+    
+    project = db.get_project_with_work_items(project_id)
+    if not project:
+        return jsonify({'success': False, 'error': '项目不存在'}), 404
+    
+    work_items = project.get('work_items', [])
+    if not work_items:
+        return jsonify({'success': False, 'error': '项目没有工作记录，无法生成 STAR 总结'}), 400
+    
+    use_mock = not Config.is_llm_configured()
+    result = generate_star_summary(project['name'], work_items, use_mock=use_mock)
+    
+    if result['success']:
+        # Save the STAR summary to project
+        db.update_project(project_id, star_summary=result['summary'])
+        return jsonify({
+            'success': True,
+            'summary': result['summary']
+        })
+    else:
+        return jsonify({
+            'success': False,
+            'error': result.get('error', '生成失败')
+        }), 500
+
+
+@app.route('/api/projects/cleanup/null', methods=['POST'])
+def cleanup_null_projects():
+    """
+    将所有名为 null 或空的项目的工作条目合并到"临时工作"项目。
+    """
+    result = db.merge_null_projects_to_temporary()
+    if result['success']:
+        return jsonify(result)
+    else:
+        return jsonify(result), 500
+
+
+@app.route('/api/projects/similar', methods=['GET'])
+def get_similar_projects():
+    """
+    获取相似项目分组，用于手动合并。
+    """
+    threshold = request.args.get('threshold', 0.6, type=float)
+    groups = db.find_similar_project_groups(threshold)
+    return jsonify({
+        'success': True,
+        'groups': groups
+    })
+
+
+@app.route('/api/projects/merge', methods=['POST'])
+def merge_projects():
+    """
+    合并多个相似项目到目标项目。
+    
+    请求体:
+    {
+        "target_project_id": 1,
+        "source_project_ids": [2, 3, 4]
+    }
+    """
+    data = request.get_json()
+    
+    target_id = data.get('target_project_id')
+    source_ids = data.get('source_project_ids', [])
+    
+    if not target_id:
+        return jsonify({'success': False, 'error': '缺少目标项目ID'}), 400
+    
+    if not source_ids:
+        return jsonify({'success': False, 'error': '缺少要合并的项目ID'}), 400
+    
+    result = db.merge_similar_projects(target_id, source_ids)
+    
+    if result['success']:
+        return jsonify(result)
+    else:
+        return jsonify(result), 500
+
+
+@app.route('/api/projects/all', methods=['DELETE'])
+def delete_all_projects():
+    """
+    删除所有项目、工作条目和技能数据。
+    """
+    result = db.delete_all_projects()
+    if result['success']:
+        return jsonify(result)
+    else:
+        return jsonify(result), 500
+
+
+# --- Work Items API ---
+
+@app.route('/api/work-items', methods=['GET'])
+def get_all_work_items():
+    """
+    Get all work items with project info.
+    """
+    work_items = db.get_all_work_items()
+    return jsonify({'success': True, 'data': work_items})
+
+
+@app.route('/api/work-items/range', methods=['GET'])
+def get_work_items_by_range():
+    """
+    Get work items within a date range.
+    
+    Query parameters:
+    - start_date: Start date (YYYY-MM-DD)
+    - end_date: End date (YYYY-MM-DD)
+    """
+    start_date = request.args.get('start_date')
+    end_date = request.args.get('end_date')
+    
+    if not start_date or not end_date:
+        return jsonify({'success': False, 'error': '缺少日期参数'}), 400
+    
+    items = db.get_work_items_by_date_range(start_date, end_date)
+    return jsonify({'success': True, 'data': items})
+
+
+@app.route('/api/work-items', methods=['POST'])
+def create_work_item():
+    """
+    Create a work item manually.
+    
+    Request body:
+    {
+        "raw_log_date": "2025-12-30",
+        "project_id": 1,  // optional
+        "action": "What was done",
+        "problem": "Problem encountered",  // optional
+        "result_metric": "Quantified result",  // optional
+        "skills_tags": "[\"Python\", \"Redis\"]"  // JSON string, optional
+    }
+    """
+    data = request.get_json()
+    if not data or 'raw_log_date' not in data:
+        return jsonify({'success': False, 'error': '缺少 raw_log_date 字段'}), 400
+    
+    item = db.create_work_item(
+        raw_log_date=data['raw_log_date'],
+        project_id=data.get('project_id'),
+        action=data.get('action'),
+        problem=data.get('problem'),
+        result_metric=data.get('result_metric'),
+        skills_tags=data.get('skills_tags'),
+        extraction_status='manual'
+    )
+    
+    if item:
+        return jsonify({'success': True, 'data': item})
+    else:
+        return jsonify({'success': False, 'error': '创建失败'}), 500
+
+
+@app.route('/api/work-items/<int:item_id>', methods=['PUT'])
+def update_work_item(item_id):
+    """
+    Update a work item.
+    """
+    data = request.get_json()
+    if not data:
+        return jsonify({'success': False, 'error': '缺少请求体'}), 400
+    
+    item = db.update_work_item(item_id, **data)
+    
+    if item:
+        return jsonify({'success': True, 'data': item})
+    else:
+        return jsonify({'success': False, 'error': '更新失败'}), 404
+
+
+@app.route('/api/work-items/<int:item_id>', methods=['DELETE'])
+def delete_work_item(item_id):
+    """
+    Delete a work item.
+    """
+    success = db.delete_work_item(item_id)
+    
+    if success:
+        return jsonify({'success': True, 'message': '工作项删除成功'})
+    else:
+        return jsonify({'success': False, 'error': '工作项不存在或删除失败'}), 404
+
+
+# --- Extraction API ---
+
+@app.route('/api/extract-work-items', methods=['POST'])
+def extract_work_items_api():
+    """
+    Extract structured work items from daily log content using LLM.
+    
+    Request body:
+    {
+        "log_content": "Daily log text...",
+        "log_date": "2025-12-30",
+        "auto_save": false  // optional, whether to auto-save extracted items
+    }
+    """
+    from generator import extract_work_items, find_best_matching_project
+    
+    data = request.get_json()
+    if not data or 'log_content' not in data or 'log_date' not in data:
+        return jsonify({'success': False, 'error': '缺少 log_content 或 log_date 字段'}), 400
+    
+    use_mock = not Config.is_llm_configured()
+    result = extract_work_items(data['log_content'], data['log_date'], use_mock=use_mock)
+    
+    if result['success'] and data.get('auto_save'):
+        # Get existing projects for similarity matching
+        existing_projects = db.get_all_projects()
+        
+        # Auto-save extracted items to database
+        saved_items = []
+        for item in result.get('work_items', []):
+            # Create or find project with similarity matching
+            project_id = None
+            if item.get('project') and item.get('project') != '日常工作':
+                # First, try to find a similar existing project
+                matching_project = find_best_matching_project(
+                    item['project'], 
+                    existing_projects, 
+                    threshold=0.6
+                )
+                
+                if matching_project:
+                    project_id = matching_project['id']
+                    # Update the item's project name to match the existing one
+                    item['project'] = matching_project['name']
+                else:
+                    # Create new project
+                    project = db.create_project(name=item['project'])
+                    if project:
+                        project_id = project['id']
+                        # Add to existing_projects for future matching in this batch
+                        existing_projects.append(project)
+            
+            # Save work item
+            skills_json = None
+            if item.get('skills'):
+                import json
+                skills_json = json.dumps(item['skills'], ensure_ascii=False)
+                # Update skills table
+                for skill in item['skills']:
+                    if skill and skill not in ['null', 'None', '待补充']:
+                        db.upsert_skill(skill)
+            
+            saved = db.create_work_item(
+                raw_log_date=data['log_date'],
+                project_id=project_id,
+                action=item.get('action'),
+                problem=item.get('problem'),
+                result_metric=item.get('result_metric'),
+                skills_tags=skills_json,
+                extraction_status='extracted'
+            )
+            if saved:
+                saved_items.append(saved)
+        
+        result['saved_items'] = saved_items
+    
+    return jsonify(result)
+
+
+# --- Skills API ---
+
+@app.route('/api/skills', methods=['GET'])
+def get_all_skills():
+    """
+    Get all skills sorted by count.
+    """
+    skills = db.get_all_skills()
+    return jsonify({'success': True, 'data': skills})
+
+
+@app.route('/api/skills/stats', methods=['GET'])
+def get_skills_stats():
+    """
+    Get skills statistics for visualization (radar chart, etc.)
+    """
+    stats = db.get_skills_stats()
+    return jsonify({'success': True, 'data': stats})
+
+
+@app.route('/api/skills/recategorize', methods=['POST'])
+def recategorize_skills():
+    """
+    重新推断所有技能的分类。
+    """
+    result = db.recategorize_all_skills()
+    if result['success']:
+        return jsonify(result)
+    else:
+        return jsonify(result), 500
+
+
+@app.route('/api/skills/<skill_name>/work-items', methods=['GET'])
+def get_work_items_by_skill(skill_name):
+    """
+    获取包含指定技能的所有工作条目。
+    """
+    work_items = db.get_work_items_by_skill(skill_name)
+    return jsonify({
+        'success': True,
+        'data': work_items,
+        'skill_name': skill_name
+    })
+
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     debug = os.environ.get('FLASK_DEBUG', 'false').lower() == 'true'

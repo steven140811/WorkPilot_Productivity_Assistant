@@ -3,13 +3,15 @@ import DailyReportEntry from './components/DailyReportEntry';
 import WeeklyReportGenerator from './components/WeeklyReportGenerator';
 import WeeklyReportQuery from './components/WeeklyReportQuery';
 import OKRGenerator from './components/OKRGenerator';
+import CareerAssets from './components/CareerAssets';
+import SkillsRadar from './components/SkillsRadar';
 import apiService, { HealthResponse } from './services/api';
 import './App.css';
 
 // Get version from package.json
-const APP_VERSION = process.env.REACT_APP_VERSION || '0.5.0';
+const APP_VERSION = process.env.REACT_APP_VERSION || '0.6.0';
 
-type TabType = 'daily-entry' | 'weekly-report' | 'weekly-query' | 'okr';
+type TabType = 'daily-entry' | 'weekly-report' | 'weekly-query' | 'okr' | 'career-assets' | 'skills-radar';
 
 function App() {
   const [activeTab, setActiveTab] = useState<TabType>('daily-entry');
@@ -34,7 +36,7 @@ function App() {
       <header className="App-header">
         <h1>周报 & OKR 生成助手</h1>
         <p className="App-subtitle">
-          基于 LLM 的智能周报和 OKR 生成工具
+          基于 LLM 的智能周报、OKR 和职业资产管理工具
         </p>
         {health && (
           <div className={`status-badge ${health.llm_configured ? 'configured' : 'not-configured'}`}>
@@ -73,6 +75,18 @@ function App() {
         >
           🎯 OKR 生成
         </button>
+        <button
+          className={`tab-btn ${activeTab === 'career-assets' ? 'active' : ''}`}
+          onClick={() => setActiveTab('career-assets')}
+        >
+          💼 简历积木
+        </button>
+        <button
+          className={`tab-btn ${activeTab === 'skills-radar' ? 'active' : ''}`}
+          onClick={() => setActiveTab('skills-radar')}
+        >
+          📊 能力雷达
+        </button>
       </nav>
 
       <main className="main-content">
@@ -80,6 +94,8 @@ function App() {
         {activeTab === 'weekly-report' && <WeeklyReportGenerator />}
         {activeTab === 'weekly-query' && <WeeklyReportQuery />}
         {activeTab === 'okr' && <OKRGenerator />}
+        {activeTab === 'career-assets' && <CareerAssets />}
+        {activeTab === 'skills-radar' && <SkillsRadar />}
       </main>
 
       <footer className="App-footer">
