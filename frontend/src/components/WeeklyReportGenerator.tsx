@@ -22,6 +22,10 @@ const WeeklyReportGenerator: React.FC = () => {
   const [loadingDailyReports, setLoadingDailyReports] = useState<boolean>(false);
   const [saving, setSaving] = useState<boolean>(false);
   const [saveMessage, setSaveMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  
+  // Edit mode state
+  const [isEditing, setIsEditing] = useState<boolean>(false);
+  const [editedReport, setEditedReport] = useState<string>('');
 
   // Load week range on mount
   useEffect(() => {
@@ -175,14 +179,45 @@ const WeeklyReportGenerator: React.FC = () => {
   };
 
   const handleCopy = () => {
+    const contentToCopy = isEditing ? editedReport : result?.report;
+    if (contentToCopy) {
+      navigator.clipboard.writeText(contentToCopy);
+      setSaveMessage({ type: 'success', text: '内容已复制到剪贴板' });
+      setTimeout(() => setSaveMessage(null), 2000);
+    }
+  };
+
+  // Enter edit mode
+  const handleStartEdit = () => {
     if (result?.report) {
-      navigator.clipboard.writeText(result.report);
+      setEditedReport(result.report);
+      setIsEditing(true);
+    }
+  };
+
+  // Cancel edit mode
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setEditedReport('');
+  };
+
+  // Apply edited content
+  const handleApplyEdit = () => {
+    if (result && editedReport) {
+      setResult({
+        ...result,
+        report: editedReport
+      });
+      setIsEditing(false);
+      setSaveMessage({ type: 'success', text: '修改已应用' });
+      setTimeout(() => setSaveMessage(null), 2000);
     }
   };
 
   // Save weekly report to database
   const handleSaveReport = async () => {
-    if (!result?.report) return;
+    const contentToSave = isEditing ? editedReport : result?.report;
+    if (!contentToSave) return;
     
     // Use imported date range if available, otherwise use current week range
     const startDate = importedStartDate || weekRange?.monday;
@@ -197,7 +232,7 @@ const WeeklyReportGenerator: React.FC = () => {
       const response = await apiService.saveWeeklyReport(
         startDate,
         endDate,
-        result.report
+        contentToSave
       );
 
       if (response.success) {
@@ -323,16 +358,42 @@ const WeeklyReportGenerator: React.FC = () => {
           <div className="result-header">
             <h3>生成结果</h3>
             <div className="result-actions">
-              <button className="copy-btn" onClick={handleCopy}>
-                复制内容
-              </button>
-              <button 
-                className="save-btn" 
-                onClick={handleSaveReport}
-                disabled={saving}
-              >
-                {saving ? '保存中...' : '💾 保存周报'}
-              </button>
+              {!isEditing ? (
+                <>
+                  <button className="edit-btn" onClick={handleStartEdit}>
+                    ✏️ 编辑
+                  </button>
+                  <button className="copy-btn" onClick={handleCopy}>
+                    复制内容
+                  </button>
+                  <button 
+                    className="save-btn" 
+                    onClick={handleSaveReport}
+                    disabled={saving}
+                  >
+                    {saving ? '保存中...' : '💾 保存周报'}
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button className="cancel-edit-btn" onClick={handleCancelEdit}>
+                    取消
+                  </button>
+                  <button className="apply-edit-btn" onClick={handleApplyEdit}>
+                    ✓ 应用修改
+                  </button>
+                  <button className="copy-btn" onClick={handleCopy}>
+                    复制内容
+                  </button>
+                  <button 
+                    className="save-btn" 
+                    onClick={handleSaveReport}
+                    disabled={saving}
+                  >
+                    {saving ? '保存中...' : '💾 保存周报'}
+                  </button>
+                </>
+              )}
             </div>
           </div>
 
@@ -344,9 +405,18 @@ const WeeklyReportGenerator: React.FC = () => {
           
           {result.validation && renderValidation(result.validation)}
           
-          <pre className="report-content">
-            {result.report}
-          </pre>
+          {isEditing ? (
+            <textarea
+              className="report-edit-textarea"
+              value={editedReport}
+              onChange={(e) => setEditedReport(e.target.value)}
+              placeholder="编辑周报内容..."
+            />
+          ) : (
+            <pre className="report-content">
+              {result.report}
+            </pre>
+          )}
         </div>
       )}
 

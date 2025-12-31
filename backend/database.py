@@ -135,6 +135,16 @@ def init_database():
             )
         ''')
         
+        # Create config table (配置存储表)
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS config (
+                key TEXT PRIMARY KEY,
+                value TEXT NOT NULL,
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+                updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+        
         conn.commit()
         logger.info("Database initialized successfully")
         
@@ -1727,6 +1737,106 @@ def find_similar_project_groups(threshold: float = 0.6) -> List[Dict[str, Any]]:
             })
     
     return groups
+
+
+# ========================
+# Configuration CRUD
+# ========================
+
+def save_config(key: str, value: dict) -> bool:
+    """
+    保存配置项。
+    
+    Args:
+        key: 配置键名
+        value: 配置值（字典，将序列化为 JSON）
+        
+    Returns:
+        bool: True if successful
+    """
+    import json
+    
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    try:
+        value_json = json.dumps(value, ensure_ascii=False)
+        
+        cursor.execute('''
+            INSERT INTO config (key, value, updated_at)
+            VALUES (?, ?, CURRENT_TIMESTAMP)
+            ON CONFLICT(key) DO UPDATE SET
+                value = excluded.value,
+                updated_at = CURRENT_TIMESTAMP
+        ''', (key, value_json))
+        
+        conn.commit()
+        logger.info(f"Config saved for key: {key}")
+        return True
+        
+    except Exception as e:
+        logger.error(f"Error saving config: {e}")
+        return False
+    finally:
+        conn.close()
+
+
+def get_config(key: str) -> Optional[Dict[str, Any]]:
+    """
+    获取配置项。
+    
+    Args:
+        key: 配置键名
+        
+    Returns:
+        配置值字典，或 None
+    """
+    import json
+    
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    try:
+        cursor.execute(
+            'SELECT value FROM config WHERE key = ?',
+            (key,)
+        )
+        row = cursor.fetchone()
+        
+        if row:
+            return json.loads(row['value'])
+        return None
+        
+    except Exception as e:
+        logger.error(f"Error getting config: {e}")
+        return None
+    finally:
+        conn.close()
+
+
+def delete_config(key: str) -> bool:
+    """
+    删除配置项。
+    
+    Args:
+        key: 配置键名
+        
+    Returns:
+        bool: True if successful
+    """
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    try:
+        cursor.execute('DELETE FROM config WHERE key = ?', (key,))
+        conn.commit()
+        return cursor.rowcount > 0
+        
+    except Exception as e:
+        logger.error(f"Error deleting config: {e}")
+        return False
+    finally:
+        conn.close()
 
 
 # Initialize database on module import

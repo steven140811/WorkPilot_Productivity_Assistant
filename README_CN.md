@@ -12,7 +12,7 @@
 - 📊 **能力雷达**：技能成长追踪，AI 智能分类，可视化能力分布
 - 📤 **多格式导出**：支持导出为 CSV、Markdown、TXT 格式
 - 💾 **本地存储**：所有数据存储在本地 SQLite 数据库，安全可靠
-- 🚀 **一键部署**：支持 Docker 或本地部署，Windows 用户可使用批处理脚本一键启动
+- 🚀 **一键部署**：Windows 用户首选exe无脑安装方式，开发者可使用批处理脚本一键启动, 支持 Docker 或本地部署
 
 ## 📷 产品展示
 
@@ -40,7 +40,11 @@
 ![能力雷达](./screenshots/skills-radar.png)
 *技能分布可视化 + AI 智能分类 + 技能详情查看*
 
-> 💡 **提示**：如需添加截图，请将图片文件放置在 `screenshots/` 目录下。详见 [screenshots/README.md](./screenshots/README.md)
+### 配置界面
+![配置](./screenshots/config.png)
+*LLM支持自定义模型，支持多个模型切换*
+
+
 
 ## 📋 功能特性
 
@@ -108,7 +112,51 @@
 
 ## 🚀 快速开始
 
-### 方式一：一键启动脚本（推荐 Windows 用户）⭐
+### 方式一：Windows 安装包（最推荐）⭐⭐⭐
+
+**最简单的使用方式，无需配置开发环境，双击即可运行！**
+
+#### 安装步骤
+
+1. **下载安装包**
+   - 从 [Releases](https://github.com/steven140811/WorkPilot/releases) 页面下载最新版本的 `WorkPilot-Setup-x.x.x.exe`
+
+2. **运行安装程序**
+   - 双击 `WorkPilot-Setup-x.x.x.exe`
+   - 选择安装目录（默认为 `C:\Program Files\WorkPilot`）
+   - 按照向导完成安装
+
+3. **启动应用**
+   - 双击桌面快捷方式 "WorkPilot 效能助手"
+   - 或从开始菜单启动
+   - 应用会自动启动后端服务和前端界面
+   - 浏览器将自动打开应用页面
+
+4. **首次配置 LLM**
+   - 点击顶部导航栏的 "⚙️ 设置" 标签
+   - 填写 LLM API 配置信息：
+     - **API URL**: 例如 `https://api.deepseek.com/v1`
+     - **API Key**: 您的 API 密钥
+     - **模型名称**: 例如 `deepseek-chat`
+   - 点击 "测试连接" 验证配置
+   - 点击 "保存配置"
+   - 页面顶部状态会自动更新为 "LLM 已配置"
+
+5. **最小化到系统托盘**
+   - 点击窗口最小化按钮，应用将自动最小化到系统托盘
+   - 右键托盘图标可打开主界面或退出应用
+   - 服务在后台持续运行
+
+#### 特性
+- ✅ 双击安装，无需开发环境
+- ✅ 自动启动后端和前端服务
+- ✅ 支持最小化到系统托盘
+- ✅ 开机自启动（可选）
+- ✅ 完整的卸载支持
+
+---
+
+### 方式二：一键启动脚本（开发者/高级用户）
 
 **Windows 用户最简单的方式：**
 
@@ -154,7 +202,7 @@ stop_services.bat
 - 前端: http://localhost:5002
 - 后端 API: http://localhost:5001
 
-### 方式二：Docker 部署
+### 方式三：Docker 部署
 
 ```bash
 # 构建 Docker 镜像
@@ -165,7 +213,7 @@ docker-compose up -d
 # 后端 API: http://localhost:5000
 ```
 
-### 方式三：手动部署
+### 方式四：手动部署
 
 #### 后端
 
@@ -302,3 +350,74 @@ FLASK_DEBUG=false                           # 调试模式开关
 ## 📝 许可证
 
 MIT License
+
+---
+
+## 🔄 数据迁移指南
+
+### 场景说明
+
+当您需要将 WorkPilot 数据迁移到新环境时（例如：换电脑、重装系统、从开发环境迁移到安装版），可以按照以下步骤操作。
+
+### 数据库文件位置
+
+| 环境类型 | 数据库路径 |
+|----------|-----------|
+| 开发环境 | `项目目录/backend/data/reports.db` |
+| 安装版本 | `安装目录/backend/_internal/data/reports.db` |
+
+> ⚠️ **注意**：安装版本的数据库文件位于 `_internal/data/` 目录下，而不是 `data/` 目录！
+
+### 迁移步骤
+
+#### 1. 停止所有 WorkPilot 服务
+
+确保源环境和目标环境的 WorkPilot 都已关闭。
+
+#### 2. 找到源数据库文件
+
+- **开发环境源**：`E:\您的项目路径\WorkPilot\backend\data\reports.db`
+- **安装版本源**：`C:\Program Files\WorkPilot\backend\_internal\data\reports.db`
+
+#### 3. 复制到目标位置
+
+**方法一：手动复制**
+
+直接复制 `reports.db` 文件到目标位置，覆盖原有文件。
+
+**方法二：使用命令行（PowerShell）**
+
+```powershell
+# 从开发环境迁移到安装版本
+Copy-Item "E:\您的项目路径\WorkPilot\backend\data\reports.db" "C:\Program Files\WorkPilot\backend\_internal\data\reports.db" -Force
+
+# 从安装版本迁移到开发环境
+Copy-Item "C:\Program Files\WorkPilot\backend\_internal\data\reports.db" "E:\您的项目路径\WorkPilot\backend\data\reports.db" -Force
+
+# 从旧安装迁移到新安装
+Copy-Item "D:\旧位置\WorkPilot\backend\_internal\data\reports.db" "E:\新位置\WorkPilot\backend\_internal\data\reports.db" -Force
+```
+
+#### 4. 启动目标环境
+
+启动目标环境的 WorkPilot，验证数据是否正确迁移。
+
+### 数据备份建议
+
+- 💾 定期备份 `reports.db` 文件到安全位置
+- 📁 可以使用云存储服务同步备份
+- 🗓️ 建议每周备份一次重要数据
+
+### 常见问题
+
+**Q: 迁移后数据没有显示？**
+
+A: 请确认复制到了正确的目录。安装版本使用 `_internal/data/` 目录，而不是 `data/` 目录。
+
+**Q: 可以同时使用开发环境和安装版本吗？**
+
+A: 可以，但数据是独立的。如需同步，需要手动复制数据库文件。
+
+**Q: 如何完全重置数据？**
+
+A: 删除 `reports.db` 文件，重启应用后会自动创建新的空数据库。

@@ -40,7 +40,11 @@ An AI-powered intelligent productivity assistant designed to boost workplace eff
 ![Skills Radar](./screenshots/skills-radar.png)
 *Skills Distribution Visualization + AI Categorization + Skill Details View*
 
-> 💡 **Tip**: To add screenshots, place image files in the `screenshots/` directory. See [screenshots/README.md](./screenshots/README.md) for details.
+### Configuration
+![Configuration](./screenshots/config.png)
+*Support LLM DIY，support models switching, support custom models*
+
+
 
 ## 📋 Features
 
@@ -108,7 +112,51 @@ An AI-powered intelligent productivity assistant designed to boost workplace eff
 
 ## 🚀 Quick Start
 
-### Method 1: One-Click Launch Script (Recommended for Windows Users) ⭐
+### Method 1: Windows Installer (Most Recommended) ⭐⭐⭐
+
+**The easiest way to use - no development environment required, just double-click to run!**
+
+#### Installation Steps
+
+1. **Download Installer**
+   - Download the latest `WorkPilot-Setup-x.x.x.exe` from the [Releases](https://github.com/steven140811/WorkPilot/releases) page
+
+2. **Run Installer**
+   - Double-click `WorkPilot-Setup-x.x.x.exe`
+   - Choose installation directory (default: `C:\Program Files\WorkPilot`)
+   - Follow the wizard to complete installation
+
+3. **Launch Application**
+   - Double-click the desktop shortcut "WorkPilot Productivity Assistant"
+   - Or launch from Start Menu
+   - The app will automatically start backend services and frontend interface
+   - Browser will automatically open the application page
+
+4. **First-time LLM Configuration**
+   - Click the "⚙️ Settings" tab in the top navigation bar
+   - Fill in LLM API configuration:
+     - **API URL**: e.g., `https://api.deepseek.com/v1`
+     - **API Key**: Your API key
+     - **Model Name**: e.g., `deepseek-chat`
+   - Click "Test Connection" to verify configuration
+   - Click "Save Configuration"
+   - The status at the top of the page will automatically update to "LLM Configured"
+
+5. **Minimize to System Tray**
+   - Click the minimize button, the app will automatically minimize to system tray
+   - Right-click the tray icon to open main interface or exit the app
+   - Services continue running in the background
+
+#### Features
+- ✅ Double-click install, no development environment needed
+- ✅ Automatically start backend and frontend services
+- ✅ Support minimize to system tray
+- ✅ Auto-start on boot (optional)
+- ✅ Complete uninstall support
+
+---
+
+### Method 2: One-Click Launch Script (Developers/Advanced Users)
 
 **Simplest way for Windows users:**
 
@@ -154,7 +202,7 @@ stop_services.bat
 - Frontend: http://localhost:5002
 - Backend API: http://localhost:5001
 
-### Method 2: Docker Compose
+### Method 3: Docker Compose
 
 ```bash
 # Build Docker images
@@ -165,7 +213,7 @@ docker-compose up -d
 # Backend API: http://localhost:5000
 ```
 
-### Method 3: Manual Deployment
+### Method 4: Manual Deployment
 
 #### Backend
 
@@ -302,4 +350,75 @@ FLASK_DEBUG=false                           # Debug mode switch
 ## 📝 License
 
 MIT License
+
+---
+
+## 🔄 Data Migration Guide
+
+### Use Cases
+
+When you need to migrate WorkPilot data to a new environment (e.g., new computer, system reinstall, migrate from development to installed version), follow these steps.
+
+### Database File Locations
+
+| Environment Type | Database Path |
+|------------------|---------------|
+| Development | `project_directory/backend/data/reports.db` |
+| Installed Version | `installation_directory/backend/_internal/data/reports.db` |
+
+> ⚠️ **Note**: The installed version's database is in the `_internal/data/` directory, NOT the `data/` directory!
+
+### Migration Steps
+
+#### 1. Stop All WorkPilot Services
+
+Ensure both source and target environments have WorkPilot completely closed.
+
+#### 2. Locate Source Database File
+
+- **Development Source**: `E:\your_project_path\WorkPilot\backend\data\reports.db`
+- **Installed Source**: `C:\Program Files\WorkPilot\backend\_internal\data\reports.db`
+
+#### 3. Copy to Target Location
+
+**Method 1: Manual Copy**
+
+Directly copy the `reports.db` file to the target location, overwriting the existing file.
+
+**Method 2: Command Line (PowerShell)**
+
+```powershell
+# From development to installed version
+Copy-Item "E:\your_project_path\WorkPilot\backend\data\reports.db" "C:\Program Files\WorkPilot\backend\_internal\data\reports.db" -Force
+
+# From installed version to development
+Copy-Item "C:\Program Files\WorkPilot\backend\_internal\data\reports.db" "E:\your_project_path\WorkPilot\backend\data\reports.db" -Force
+
+# From old installation to new installation
+Copy-Item "D:\old_location\WorkPilot\backend\_internal\data\reports.db" "E:\new_location\WorkPilot\backend\_internal\data\reports.db" -Force
+```
+
+#### 4. Launch Target Environment
+
+Start WorkPilot in the target environment and verify data was migrated correctly.
+
+### Backup Recommendations
+
+- 💾 Regularly backup `reports.db` file to a safe location
+- 📁 Consider using cloud storage services for synchronized backups
+- 🗓️ Recommend weekly backups of important data
+
+### FAQ
+
+**Q: Data not showing after migration?**
+
+A: Make sure you copied to the correct directory. Installed version uses `_internal/data/` directory, not `data/`.
+
+**Q: Can I use development and installed versions simultaneously?**
+
+A: Yes, but data is independent. Manual database file copying is required to sync data.
+
+**Q: How to completely reset data?**
+
+A: Delete the `reports.db` file, restart the app and a new empty database will be created automatically.
 

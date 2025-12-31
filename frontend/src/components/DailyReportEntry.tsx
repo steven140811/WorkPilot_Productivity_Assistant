@@ -3,6 +3,7 @@ import apiService, { TodoItem } from '../services/api';
 import { getHoliday, Holiday } from '../utils/holidays';
 import { ExportFormat, exportDailyReports } from '../utils/export';
 import ExportButton from './ExportButton';
+import DeleteConfirmModal from './DeleteConfirmModal';
 import './DailyReportEntry.css';
 
 interface DailyReportEntryProps {}
@@ -21,6 +22,10 @@ const DailyReportEntry: React.FC<DailyReportEntryProps> = () => {
   const [todoItems, setTodoItems] = useState<TodoItem[]>([]);
   const [newTodoContent, setNewTodoContent] = useState('');
   const [loadingTodos, setLoadingTodos] = useState(false);
+  
+  // Delete confirmation modal state
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
 
@@ -222,8 +227,9 @@ const DailyReportEntry: React.FC<DailyReportEntryProps> = () => {
 
   // Handle delete
   const handleDelete = async () => {
-    if (!selectedDate || !window.confirm('确定要删除这天的日报吗？')) return;
+    if (!selectedDate) return;
 
+    setDeleting(true);
     try {
       const response = await apiService.deleteDailyReport(selectedDate);
       if (response.success) {
@@ -240,6 +246,9 @@ const DailyReportEntry: React.FC<DailyReportEntryProps> = () => {
       }
     } catch (error) {
       setMessage({ type: 'error', text: '删除失败' });
+    } finally {
+      setDeleting(false);
+      setShowDeleteModal(false);
     }
   };
 
@@ -467,7 +476,7 @@ const DailyReportEntry: React.FC<DailyReportEntryProps> = () => {
                 />
               )}
               {reportDates.includes(selectedDate) && (
-                <button className="btn btn-danger" onClick={handleDelete}>
+                <button className="btn btn-danger" onClick={() => setShowDeleteModal(true)}>
                   删除
                 </button>
               )}
@@ -510,6 +519,17 @@ const DailyReportEntry: React.FC<DailyReportEntryProps> = () => {
           请在日历中选择一个日期开始录入日报
         </div>
       )}
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmModal
+        show={showDeleteModal}
+        title="⚠️ 确认删除"
+        message={`确定要删除 ${selectedDate ? formatDisplayDate(selectedDate) : ''} 的日报吗？`}
+        hint="此操作无法恢复。"
+        loading={deleting}
+        onConfirm={handleDelete}
+        onCancel={() => setShowDeleteModal(false)}
+      />
     </div>
   );
 };

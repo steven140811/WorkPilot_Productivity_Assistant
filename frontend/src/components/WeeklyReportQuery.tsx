@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import apiService, { WeeklyReport } from '../services/api';
 import { ExportFormat, exportWeeklyReport } from '../utils/export';
 import ExportButton from './ExportButton';
+import DeleteConfirmModal from './DeleteConfirmModal';
 import './WeeklyReportQuery.css';
 
 const WeeklyReportQuery: React.FC = () => {
@@ -15,6 +16,11 @@ const WeeklyReportQuery: React.FC = () => {
   const [editContent, setEditContent] = useState<string>('');
   const [saving, setSaving] = useState<boolean>(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  // Delete confirmation modal state
+  const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
+  const [reportToDelete, setReportToDelete] = useState<WeeklyReport | null>(null);
+  const [deleting, setDeleting] = useState<boolean>(false);
 
   // Load all reports on mount
   useEffect(() => {
@@ -110,22 +116,30 @@ const WeeklyReportQuery: React.FC = () => {
   };
 
   const handleDelete = async (report: WeeklyReport) => {
-    if (!window.confirm(`确定要删除 ${report.start_date} ~ ${report.end_date} 的周报吗？`)) {
-      return;
-    }
+    setReportToDelete(report);
+    setShowDeleteModal(true);
+  };
 
+  const confirmDelete = async () => {
+    if (!reportToDelete) return;
+
+    setDeleting(true);
     try {
-      const response = await apiService.deleteWeeklyReport(report.start_date, report.end_date);
+      const response = await apiService.deleteWeeklyReport(reportToDelete.start_date, reportToDelete.end_date);
       if (response.success) {
         setReports(prev => prev.filter(r => 
-          !(r.start_date === report.start_date && r.end_date === report.end_date)
+          !(r.start_date === reportToDelete.start_date && r.end_date === reportToDelete.end_date)
         ));
-        if (editingReport?.start_date === report.start_date && editingReport?.end_date === report.end_date) {
+        if (editingReport?.start_date === reportToDelete.start_date && editingReport?.end_date === reportToDelete.end_date) {
           handleCancelEdit();
         }
       }
     } catch (error) {
       console.error('Failed to delete weekly report:', error);
+    } finally {
+      setDeleting(false);
+      setShowDeleteModal(false);
+      setReportToDelete(null);
     }
   };
 
@@ -304,6 +318,20 @@ const WeeklyReportQuery: React.FC = () => {
           />
         </div>
       )}
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmModal
+        show={showDeleteModal}
+        title="⚠️ 确认删除"
+        message={reportToDelete ? `确定要删除 ${formatDateRange(reportToDelete.start_date, reportToDelete.end_date)} 的周报吗？` : ''}
+        hint="此操作无法恢复。"
+        loading={deleting}
+        onConfirm={confirmDelete}
+        onCancel={() => {
+          setShowDeleteModal(false);
+          setReportToDelete(null);
+        }}
+      />
     </div>
   );
 };

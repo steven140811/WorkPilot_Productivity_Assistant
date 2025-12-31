@@ -528,6 +528,33 @@ class ApiService {
     });
     return response.json();
   }
+
+  // ========================
+  // LLM Configuration API
+  // ========================
+
+  async getLLMConfig(): Promise<ApiResponse<LLMConfig>> {
+    const response = await fetch(`${this.baseUrl}/api/config/llm`);
+    return response.json();
+  }
+
+  async saveLLMConfig(config: LLMConfig): Promise<ApiResponse<null>> {
+    const response = await fetch(`${this.baseUrl}/api/config/llm`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(config),
+    });
+    return response.json();
+  }
+
+  async testLLMConfig(config: LLMConfig): Promise<{ success: boolean; error?: string }> {
+    const response = await fetch(`${this.baseUrl}/api/config/llm/test`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(config),
+    });
+    return response.json();
+  }
 }
 
 // New interfaces for Career Asset Management
@@ -597,6 +624,13 @@ export interface ExtractionResult {
   notes?: string;
   error?: string;
   saved_items?: WorkItem[];
+}
+
+// LLM Configuration
+export interface LLMConfig {
+  api_url: string;
+  api_key: string;
+  model: string;
 }
 
 export const apiService = new ApiService();

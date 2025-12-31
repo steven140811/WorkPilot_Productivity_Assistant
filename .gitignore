@@ -15,6 +15,11 @@ backend/.pytest_cache/
 dist/
 build/
 
+# Windows installer build outputs
+installer/output/
+WorkPilot-Setup-*.exe
+*.spec
+
 # IDE
 .idea/
 .vscode/

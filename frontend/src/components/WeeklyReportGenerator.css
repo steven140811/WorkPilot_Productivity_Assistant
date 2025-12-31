@@ -508,3 +508,69 @@
   border-color: #1890ff;
   color: #1890ff;
 }
+
+/* Edit button styles */
+.edit-btn {
+  padding: 6px 16px;
+  background-color: #fa8c16;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+.edit-btn:hover {
+  background-color: #d46b08;
+}
+
+.cancel-edit-btn {
+  padding: 6px 16px;
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+.cancel-edit-btn:hover {
+  background-color: #5a6268;
+}
+
+.apply-edit-btn {
+  padding: 6px 16px;
+  background-color: #52c41a;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+.apply-edit-btn:hover {
+  background-color: #389e0d;
+}
+
+.report-edit-textarea {
+  width: 100%;
+  min-height: 500px;
+  padding: 16px;
+  border: 2px solid #1890ff;
+  border-radius: 4px;
+  font-family: 'Microsoft YaHei', 'Segoe UI', sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+  resize: vertical;
+  box-sizing: border-box;
+  background-color: #fff;
+}
+
+.report-edit-textarea:focus {
+  outline: none;
+  border-color: #40a9ff;
+  box-shadow: 0 0 0 3px rgba(24, 144, 255, 0.2);
+}

@@ -10,6 +10,36 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
+# 数据库配置缓存（避免循环导入）
+_db_config_cache = None
+_db_config_loaded = False
+
+
+def _load_db_config():
+    """从数据库加载 LLM 配置（延迟加载避免循环导入）"""
+    global _db_config_cache, _db_config_loaded
+    
+    if _db_config_loaded:
+        return _db_config_cache
+    
+    try:
+        from database import get_config
+        _db_config_cache = get_config('llm')
+        _db_config_loaded = True
+    except Exception:
+        _db_config_cache = None
+        _db_config_loaded = True
+    
+    return _db_config_cache
+
+
+def reload_db_config():
+    """强制重新加载数据库配置"""
+    global _db_config_cache, _db_config_loaded
+    _db_config_loaded = False
+    return _load_db_config()
+
+
 class Config:
     """Application configuration loaded from environment variables"""
     
@@ -36,7 +66,20 @@ class Config:
     
     @classmethod
     def get_llm_config(cls):
-        """Return LLM configuration as dictionary"""
+        """Return LLM configuration as dictionary, prioritizing database config"""
+        # 首先检查数据库配置
+        db_config = _load_db_config()
+        if db_config and db_config.get('api_url') and db_config.get('api_key'):
+            return {
+                'api_url': db_config.get('api_url', ''),
+                'api_key': db_config.get('api_key', ''),
+                'model': db_config.get('model', cls.LLM_MODEL),
+                'timeout': cls.LLM_TIMEOUT,
+                'retry': cls.LLM_RETRY,
+                'temperature': cls.LLM_TEMPERATURE
+            }
+        
+        # 回退到环境变量配置
         return {
             'api_url': cls.LLM_API_URL,
             'api_key': cls.LLM_API_KEY,
@@ -48,5 +91,11 @@ class Config:
     
     @classmethod
     def is_llm_configured(cls):
-        """Check if LLM is properly configured"""
+        """Check if LLM is properly configured (from database or environment)"""
+        # 首先检查数据库配置
+        db_config = _load_db_config()
+        if db_config and db_config.get('api_url') and db_config.get('api_key'):
+            return True
+        
+        # 回退到环境变量配置
         return bool(cls.LLM_API_URL and cls.LLM_API_KEY)

@@ -1042,6 +1042,199 @@ def get_work_items_by_skill(skill_name):
     })
 
 
+# ========================
+# LLM Configuration API
+# ========================
+
+@app.route('/api/config/llm', methods=['GET'])
+def get_llm_config():
+    """
+    获取当前 LLM 配置。
+    API Key 会进行掩码处理以保护隐私。
+    """
+    config = db.get_config('llm')
+    if config:
+        # 对 API Key 进行掩码处理
+        api_key = config.get('api_key', '')
+        if api_key and len(api_key) > 8:
+            masked_key = api_key[:4] + '*' * (len(api_key) - 8) + api_key[-4:]
+            config['api_key'] = masked_key
+        return jsonify({
+            'success': True,
+            'data': config
+        })
+    else:
+        return jsonify({
+            'success': True,
+            'data': {
+                'api_url': Config.LLM_API_URL,
+                'api_key': Config.LLM_API_KEY[:4] + '****' + Config.LLM_API_KEY[-4:] if len(Config.LLM_API_KEY) > 8 else '',
+                'model': Config.LLM_MODEL
+            }
+        })
+
+
+@app.route('/api/config/llm', methods=['POST'])
+def save_llm_config():
+    """
+    保存 LLM 配置。
+    
+    Request body:
+    {
+        "api_url": "https://api.example.com/v1/chat/completions",
+        "api_key": "your-api-key",
+        "model": "model-name"
+    }
+    """
+    data = request.get_json()
+    if not data:
+        return jsonify({
+            'success': False,
+            'error': '缺少配置数据'
+        }), 400
+    
+    api_url = data.get('api_url', '').strip()
+    api_key = data.get('api_key', '').strip()
+    model = data.get('model', 'default/deepseek-v3-2').strip()
+    
+    if not api_url:
+        return jsonify({
+            'success': False,
+            'error': '请填写 API URL'
+        }), 400
+    
+    if not api_key:
+        return jsonify({
+            'success': False,
+            'error': '请填写 API Key'
+        }), 400
+    
+    # 如果 API Key 是掩码的（包含连续的 * 号），则保留原来的 API Key
+    if '****' in api_key or ('*' * 4) in api_key:
+        existing_config = db.get_config('llm')
+        if existing_config and existing_config.get('api_key'):
+            api_key = existing_config['api_key']
+        else:
+            api_key = Config.LLM_API_KEY
+    
+    config = {
+        'api_url': api_url,
+        'api_key': api_key,
+        'model': model
+    }
+    
+    success = db.save_config('llm', config)
+    
+    if success:
+        # 更新运行时配置
+        Config.LLM_API_URL = api_url
+        Config.LLM_API_KEY = api_key
+        Config.LLM_MODEL = model
+        
+        # 刷新数据库配置缓存
+        from config import reload_db_config
+        reload_db_config()
+        
+        return jsonify({
+            'success': True,
+            'message': 'LLM 配置保存成功'
+        })
+    else:
+        return jsonify({
+            'success': False,
+            'error': '保存配置失败'
+        }), 500
+
+
+@app.route('/api/config/llm/test', methods=['POST'])
+def test_llm_config():
+    """
+    测试 LLM 配置是否可用。
+    
+    Request body:
+    {
+        "api_url": "https://api.example.com/v1/chat/completions",
+        "api_key": "your-api-key",
+        "model": "model-name"
+    }
+    """
+    data = request.get_json()
+    if not data:
+        return jsonify({
+            'success': False,
+            'error': '缺少配置数据'
+        }), 400
+    
+    api_url = data.get('api_url', '').strip()
+    api_key = data.get('api_key', '').strip()
+    model = data.get('model', 'default/deepseek-v3-2').strip()
+    
+    # 如果 API Key 是掩码的，使用现有的 API Key
+    if '****' in api_key or ('*' * 4) in api_key:
+        existing_config = db.get_config('llm')
+        if existing_config and existing_config.get('api_key'):
+            api_key = existing_config['api_key']
+        else:
+            api_key = Config.LLM_API_KEY
+    
+    if not api_url or not api_key:
+        return jsonify({
+            'success': False,
+            'error': '请填写完整的 API URL 和 API Key'
+        }), 400
+    
+    # 尝试调用 LLM API
+    try:
+        import requests
+        
+        # 构建完整的 API URL（与 llm_client.py 保持一致）
+        # 如果 URL 已经包含 /chat/completions，则不再添加
+        test_url = api_url.rstrip('/')
+        if not test_url.endswith('/chat/completions'):
+            test_url = f"{test_url}/chat/completions"
+        
+        headers = {
+            'Content-Type': 'application/json',
+            'Authorization': f'Bearer {api_key}'
+        }
+        payload = {
+            'model': model,
+            'messages': [{'role': 'user', 'content': 'Hello, just testing connection.'}],
+            'max_tokens': 10,
+            'temperature': 0
+        }
+        
+        logger.info(f"Testing LLM connection to: {test_url}")
+        response = requests.post(test_url, json=payload, headers=headers, timeout=30)
+        
+        if response.status_code == 200:
+            return jsonify({
+                'success': True,
+                'message': 'LLM 连接测试成功'
+            })
+        else:
+            error_msg = response.text[:200] if response.text else f'HTTP {response.status_code}'
+            return jsonify({
+                'success': False,
+                'error': f'API 返回错误: {error_msg}'
+            })
+    except requests.exceptions.Timeout:
+        return jsonify({
+            'success': False,
+            'error': '连接超时，请检查 API URL 是否正确'
+        })
+    except requests.exceptions.ConnectionError:
+        return jsonify({
+            'success': False,
+            'error': '无法连接到 API 服务器，请检查 URL 是否正确'
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': f'测试失败: {str(e)}'
+        })
+
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     debug = os.environ.get('FLASK_DEBUG', 'false').lower() == 'true'
